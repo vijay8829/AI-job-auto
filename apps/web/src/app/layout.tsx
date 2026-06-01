@@ -5,7 +5,7 @@ import { QueryProvider } from '@/components/providers/query-provider';
 import { Toaster } from 'react-hot-toast';
 import '@/styles/globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap', weight: ['300','400','500','600','700','800','900'] });
 
 export const metadata: Metadata = {
   title: { default: 'AI Job Platform', template: '%s | AI Job Platform' },
@@ -34,7 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning className={inter.variable}>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <QueryProvider>
             {children}
             <Toaster
