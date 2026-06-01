@@ -1,0 +1,664 @@
+// ================================================================
+// AI Job Application Automation Platform — Prisma Schema
+// Production-ready with full relational integrity
+// ================================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions", "fullTextSearch"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector"), pg_trgm, uuid_ossp(map: "uuid-ossp")]
+}
+
+// ================================================================
+// ENUMS
+// ================================================================
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  PAST_DUE
+  TRIALING
+  INCOMPLETE
+}
+
+enum ResumeFormat {
+  PDF
+  DOCX
+  TXT
+}
+
+enum ExperienceLevel {
+  ENTRY
+  JUNIOR
+  MID
+  SENIOR
+  LEAD
+  PRINCIPAL
+  EXECUTIVE
+}
+
+enum WorkMode {
+  REMOTE
+  HYBRID
+  ONSITE
+  FLEXIBLE
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  FREELANCE
+  INTERNSHIP
+}
+
+enum JobStatus {
+  ACTIVE
+  CLOSED
+  DRAFT
+  EXPIRED
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPLIED
+  UNDER_REVIEW
+  INTERVIEW_SCHEDULED
+  INTERVIEW_COMPLETED
+  OFFER_RECEIVED
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+  GHOSTED
+}
+
+enum AutomationStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+  NEEDS_REVIEW
+  CAPTCHA_REQUIRED
+}
+
+enum NotificationType {
+  APPLICATION_SUBMITTED
+  APPLICATION_STATUS_CHANGE
+  INTERVIEW_SCHEDULED
+  JOB_MATCH_FOUND
+  RESUME_PARSED
+  SUBSCRIPTION_EXPIRING
+  SYSTEM_ALERT
+  DAILY_DIGEST
+}
+
+enum PlatformType {
+  LINKEDIN
+  INDEED
+  NAUKRI
+  GLASSDOOR
+  WELLFOUND
+  GREENHOUSE
+  LEVER
+  WORKDAY
+  ICIMS
+  TALEO
+  SMARTRECRUITERS
+  CUSTOM
+}
+
+enum ConnectorStatus {
+  ACTIVE
+  INACTIVE
+  RATE_LIMITED
+  AUTH_FAILED
+  MAINTENANCE
+}
+
+// ================================================================
+// USERS
+// ================================================================
+
+model User {
+  id                String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email             String           @unique @db.VarChar(255)
+  passwordHash      String?          @map("password_hash") @db.VarChar(255)
+  firstName         String           @map("first_name") @db.VarChar(100)
+  lastName          String           @map("last_name") @db.VarChar(100)
+  avatarUrl         String?          @map("avatar_url") @db.VarChar(500)
+  role              UserRole         @default(USER)
+  isVerified        Boolean          @default(false) @map("is_verified")
+  isActive          Boolean          @default(true) @map("is_active")
+  googleId          String?          @unique @map("google_id") @db.VarChar(255)
+  linkedinId        String?          @unique @map("linkedin_id") @db.VarChar(255)
+  lastLoginAt       DateTime?        @map("last_login_at")
+  emailVerifiedAt   DateTime?        @map("email_verified_at")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  deletedAt         DateTime?        @map("deleted_at")
+
+  // Relations
+  profile           UserProfile?
+  resumes           Resume[]
+  applications      Application[]
+  platformAccounts  PlatformAccount[]
+  notifications     Notification[]
+  subscription      Subscription?
+  aiScores          AiScore[]
+  automationLogs    AutomationLog[]
+  usageLimits       UsageLimit?
+  sessions          UserSession[]
+
+  @@index([email])
+  @@index([googleId])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model UserSession {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  refreshToken String   @unique @map("refresh_token") @db.VarChar(500)
+  userAgent    String?  @map("user_agent") @db.VarChar(500)
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([refreshToken])
+  @@map("user_sessions")
+}
+
+// ================================================================
+// USER PROFILE
+// ================================================================
+
+model UserProfile {
+  id                    String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                String          @unique @map("user_id") @db.Uuid
+  headline              String?         @db.VarChar(300)
+  summary               String?         @db.Text
+  phone                 String?         @db.VarChar(30)
+  location              String?         @db.VarChar(200)
+  country               String?         @db.VarChar(100)
+  timezone              String?         @db.VarChar(100)
+  linkedinUrl           String?         @map("linkedin_url") @db.VarChar(500)
+  githubUrl             String?         @map("github_url") @db.VarChar(500)
+  portfolioUrl          String?         @map("portfolio_url") @db.VarChar(500)
+  websiteUrl            String?         @map("website_url") @db.VarChar(500)
+  skills                String[]        @default([])
+  preferredRoles        String[]        @default([]) @map("preferred_roles")
+  preferredLocations    String[]        @default([]) @map("preferred_locations")
+  workModes             WorkMode[]      @default([]) @map("work_modes")
+  employmentTypes       EmploymentType[] @default([]) @map("employment_types")
+  experienceLevel       ExperienceLevel? @map("experience_level")
+  totalYearsExperience  Int?            @map("total_years_experience")
+  salaryMin             Int?            @map("salary_min")
+  salaryMax             Int?            @map("salary_max")
+  salaryCurrency        String          @default("USD") @map("salary_currency") @db.VarChar(10)
+  noticePeriodDays      Int?            @map("notice_period_days")
+  willingToRelocate     Boolean         @default(false) @map("willing_to_relocate")
+  openToWork            Boolean         @default(true) @map("open_to_work")
+  profileCompleteness   Int             @default(0) @map("profile_completeness")
+  onboardingCompletedAt DateTime?       @map("onboarding_completed_at")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+
+  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workExperiences       WorkExperience[]
+  educations            Education[]
+  certifications        Certification[]
+
+  @@map("user_profiles")
+}
+
+model WorkExperience {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  profileId   String    @map("profile_id") @db.Uuid
+  company     String    @db.VarChar(200)
+  title       String    @db.VarChar(200)
+  location    String?   @db.VarChar(200)
+  workMode    WorkMode? @map("work_mode")
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime? @map("end_date")
+  isCurrent   Boolean   @default(false) @map("is_current")
+  description String?   @db.Text
+  skills      String[]  @default([])
+  achievements String[] @default([])
+
+  profile UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@map("work_experiences")
+}
+
+model Education {
+  id           String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  profileId    String    @map("profile_id") @db.Uuid
+  institution  String    @db.VarChar(300)
+  degree       String    @db.VarChar(200)
+  fieldOfStudy String?   @map("field_of_study") @db.VarChar(200)
+  grade        String?   @db.VarChar(50)
+  startDate    DateTime  @map("start_date")
+  endDate      DateTime? @map("end_date")
+  isCurrent    Boolean   @default(false) @map("is_current")
+  description  String?   @db.Text
+
+  profile UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@map("educations")
+}
+
+model Certification {
+  id           String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  profileId    String    @map("profile_id") @db.Uuid
+  name         String    @db.VarChar(300)
+  issuer       String    @db.VarChar(200)
+  credentialId String?   @map("credential_id") @db.VarChar(200)
+  credentialUrl String?  @map("credential_url") @db.VarChar(500)
+  issuedAt     DateTime  @map("issued_at")
+  expiresAt    DateTime? @map("expires_at")
+
+  profile UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@map("certifications")
+}
+
+// ================================================================
+// RESUMES
+// ================================================================
+
+model Resume {
+  id               String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId           String       @map("user_id") @db.Uuid
+  name             String       @db.VarChar(255)
+  originalFileName String       @map("original_file_name") @db.VarChar(255)
+  fileUrl          String       @map("file_url") @db.VarChar(1000)
+  fileKey          String       @map("file_key") @db.VarChar(500)
+  fileSize         Int          @map("file_size")
+  format           ResumeFormat
+  isDefault        Boolean      @default(false) @map("is_default")
+  isParsed         Boolean      @default(false) @map("is_parsed")
+  parseStatus      String       @default("pending") @map("parse_status") @db.VarChar(50)
+  parseError       String?      @map("parse_error") @db.Text
+  parsedAt         DateTime?    @map("parsed_at")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parsedProfile  ParsedProfile?
+  applications   Application[]
+  tailoredVersions TailoredResume[]
+
+  @@index([userId])
+  @@map("resumes")
+}
+
+model ParsedProfile {
+  id               String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  resumeId         String   @unique @map("resume_id") @db.Uuid
+  rawText          String   @map("raw_text") @db.Text
+  skills           Json     @default("[]")
+  experience       Json     @default("[]")
+  education        Json     @default("[]")
+  certifications   Json     @default("[]")
+  projects         Json     @default("[]")
+  technologies     Json     @default("[]")
+  keywords         Json     @default("[]")
+  languages        Json     @default("[]")
+  contactInfo      Json     @map("contact_info") @default("{}")
+  summary          String?  @db.Text
+  totalExperienceYears Float? @map("total_experience_years")
+  atsScore         Int?     @map("ats_score")
+  readabilityScore Int?     @map("readability_score")
+  keywordDensity   Json     @map("keyword_density") @default("{}")
+  embedding        Unsupported("vector(1536)")?
+  parsedAt         DateTime @default(now()) @map("parsed_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@map("parsed_profiles")
+}
+
+model TailoredResume {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  resumeId     String   @map("resume_id") @db.Uuid
+  jobId        String?  @map("job_id") @db.Uuid
+  name         String   @db.VarChar(255)
+  content      Json
+  fileUrl      String?  @map("file_url") @db.VarChar(1000)
+  coverLetter  String?  @map("cover_letter") @db.Text
+  atsScore     Int?     @map("ats_score")
+  changes      Json     @default("[]")
+  addedKeywords String[] @default([]) @map("added_keywords")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  job    Job?   @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  @@index([resumeId])
+  @@index([jobId])
+  @@map("tailored_resumes")
+}
+
+// ================================================================
+// JOB PLATFORMS
+// ================================================================
+
+model JobPlatform {
+  id               String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name             String          @unique @db.VarChar(100)
+  type             PlatformType    @default(CUSTOM)
+  displayName      String          @map("display_name") @db.VarChar(100)
+  logoUrl          String?         @map("logo_url") @db.VarChar(500)
+  baseUrl          String          @map("base_url") @db.VarChar(300)
+  searchUrl        String?         @map("search_url") @db.VarChar(500)
+  connectorClass   String          @map("connector_class") @db.VarChar(200)
+  config           Json            @default("{}")
+  isActive         Boolean         @default(true) @map("is_active")
+  isPublic         Boolean         @default(true) @map("is_public")
+  requiresAuth     Boolean         @default(true) @map("requires_auth")
+  supportsEasyApply Boolean        @default(false) @map("supports_easy_apply")
+  supportsSearch   Boolean         @default(true) @map("supports_search")
+  rateLimitMs      Int             @default(2000) @map("rate_limit_ms")
+  maxRetries       Int             @default(3) @map("max_retries")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  jobs             Job[]
+  platformAccounts PlatformAccount[]
+
+  @@map("job_platforms")
+}
+
+model PlatformAccount {
+  id               String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId           String          @map("user_id") @db.Uuid
+  platformId       String          @map("platform_id") @db.Uuid
+  username         String?         @db.VarChar(255)
+  encryptedCredentials String?     @map("encrypted_credentials") @db.Text
+  accessToken      String?         @map("access_token") @db.Text
+  refreshToken     String?         @map("refresh_token") @db.Text
+  tokenExpiresAt   DateTime?       @map("token_expires_at")
+  cookieData       String?         @map("cookie_data") @db.Text
+  status           ConnectorStatus @default(ACTIVE)
+  lastSyncAt       DateTime?       @map("last_sync_at")
+  syncError        String?         @map("sync_error") @db.Text
+  isActive         Boolean         @default(true) @map("is_active")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform JobPlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platformId])
+  @@index([userId])
+  @@index([platformId])
+  @@map("platform_accounts")
+}
+
+// ================================================================
+// JOBS
+// ================================================================
+
+model Job {
+  id                String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  platformId        String         @map("platform_id") @db.Uuid
+  externalId        String         @map("external_id") @db.VarChar(500)
+  externalUrl       String         @map("external_url") @db.VarChar(1000)
+  applyUrl          String?        @map("apply_url") @db.VarChar(1000)
+  title             String         @db.VarChar(500)
+  company           String         @db.VarChar(300)
+  companyLogoUrl    String?        @map("company_logo_url") @db.VarChar(500)
+  location          String?        @db.VarChar(300)
+  country           String?        @db.VarChar(100)
+  workMode          WorkMode?      @map("work_mode")
+  employmentType    EmploymentType? @map("employment_type")
+  experienceLevel   ExperienceLevel? @map("experience_level")
+  salaryMin         Int?           @map("salary_min")
+  salaryMax         Int?           @map("salary_max")
+  salaryCurrency    String?        @map("salary_currency") @db.VarChar(10)
+  salaryPeriod      String?        @map("salary_period") @db.VarChar(50)
+  description       String         @db.Text
+  requirements      String?        @db.Text
+  responsibilities  String?        @db.Text
+  benefits          String?        @db.Text
+  skills            String[]       @default([])
+  technologies      String[]       @default([])
+  keywords          String[]       @default([])
+  status            JobStatus      @default(ACTIVE)
+  postedAt          DateTime?      @map("posted_at")
+  expiresAt         DateTime?      @map("expires_at")
+  scrapedAt         DateTime       @default(now()) @map("scraped_at")
+  embedding         Unsupported("vector(1536)")?
+  rawData           Json?          @map("raw_data")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+
+  platform          JobPlatform    @relation(fields: [platformId], references: [id])
+  applications      Application[]
+  aiScores          AiScore[]
+  tailoredResumes   TailoredResume[]
+
+  @@unique([platformId, externalId])
+  @@index([platformId])
+  @@index([company])
+  @@index([status])
+  @@index([postedAt])
+  @@index([workMode])
+  @@index([platformId, status])
+  @@index([status, postedAt(sort: Desc)])
+  @@map("jobs")
+}
+
+// ================================================================
+// APPLICATIONS
+// ================================================================
+
+model Application {
+  id                String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId            String            @map("user_id") @db.Uuid
+  jobId             String            @map("job_id") @db.Uuid
+  resumeId          String?           @map("resume_id") @db.Uuid
+  tailoredResumeId  String?           @map("tailored_resume_id") @db.Uuid
+  status            ApplicationStatus @default(PENDING)
+  coverLetter       String?           @map("cover_letter") @db.Text
+  answers           Json              @default("{}") // answers to application questions
+  notes             String?           @db.Text
+  appliedAt         DateTime?         @map("applied_at")
+  respondedAt       DateTime?         @map("responded_at")
+  interviewDate     DateTime?         @map("interview_date")
+  offerAmount       Int?              @map("offer_amount")
+  offerCurrency     String?           @map("offer_currency") @db.VarChar(10)
+  rejectionReason   String?           @map("rejection_reason") @db.Text
+  isAutoApplied     Boolean           @default(false) @map("is_auto_applied")
+  automationId      String?           @map("automation_id") @db.Uuid
+  aiMatchScore      Int?              @map("ai_match_score")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job           Job            @relation(fields: [jobId], references: [id])
+  resume        Resume?        @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  automationLog AutomationLog? @relation(fields: [automationId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, jobId])
+  @@index([userId])
+  @@index([jobId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, status])
+  @@map("applications")
+}
+
+// ================================================================
+// AUTOMATION LOGS
+// ================================================================
+
+model AutomationLog {
+  id              String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId          String           @map("user_id") @db.Uuid
+  jobId           String?          @map("job_id") @db.Uuid
+  platformId      String?          @map("platform_id") @db.Uuid
+  status          AutomationStatus @default(QUEUED)
+  steps           Json             @default("[]")
+  currentStep     String?          @map("current_step") @db.VarChar(200)
+  totalSteps      Int              @default(0) @map("total_steps")
+  completedSteps  Int              @default(0) @map("completed_steps")
+  screenshotUrls  String[]         @default([]) @map("screenshot_urls")
+  errorMessage    String?          @map("error_message") @db.Text
+  errorStack      String?          @map("error_stack") @db.Text
+  formData        Json?            @map("form_data")
+  sessionData     Json?            @map("session_data")
+  retryCount      Int              @default(0) @map("retry_count")
+  startedAt       DateTime?        @map("started_at")
+  completedAt     DateTime?        @map("completed_at")
+  durationMs      Int?             @map("duration_ms")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications Application[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, status])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("automation_logs")
+}
+
+// ================================================================
+// NOTIFICATIONS
+// ================================================================
+
+model Notification {
+  id         String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId     String           @map("user_id") @db.Uuid
+  type       NotificationType
+  title      String           @db.VarChar(300)
+  body       String           @db.Text
+  data       Json             @default("{}")
+  isRead     Boolean          @default(false) @map("is_read")
+  readAt     DateTime?        @map("read_at")
+  emailSent  Boolean          @default(false) @map("email_sent")
+  emailSentAt DateTime?       @map("email_sent_at")
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// ================================================================
+// AI SCORES
+// ================================================================
+
+model AiScore {
+  id               String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  jobId            String   @map("job_id") @db.Uuid
+  resumeId         String?  @map("resume_id") @db.Uuid
+  overallScore     Int      @map("overall_score")
+  skillMatchScore  Int      @map("skill_match_score")
+  experienceScore  Int      @map("experience_score")
+  locationScore    Int      @map("location_score")
+  salaryScore      Int      @map("salary_score")
+  atsScore         Int      @map("ats_score")
+  keywordScore     Int      @map("keyword_score")
+  matchedSkills    String[] @default([]) @map("matched_skills")
+  missingSkills    String[] @default([]) @map("missing_skills")
+  matchReasons     Json     @default("[]") @map("match_reasons")
+  improvements     Json     @default("[]")
+  recommendation   String?  @db.Text
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@index([userId])
+  @@index([jobId])
+  @@index([overallScore])
+  @@index([userId, overallScore(sort: Desc)])
+  @@map("ai_scores")
+}
+
+// ================================================================
+// SUBSCRIPTIONS
+// ================================================================
+
+model Subscription {
+  id                   String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId               String             @unique @map("user_id") @db.Uuid
+  plan                 SubscriptionPlan   @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId     String?            @unique @map("stripe_customer_id") @db.VarChar(200)
+  stripeSubscriptionId String?            @unique @map("stripe_subscription_id") @db.VarChar(200)
+  stripePriceId        String?            @map("stripe_price_id") @db.VarChar(200)
+  currentPeriodStart   DateTime?          @map("current_period_start")
+  currentPeriodEnd     DateTime?          @map("current_period_end")
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  trialStart           DateTime?          @map("trial_start")
+  trialEnd             DateTime?          @map("trial_end")
+  cancelledAt          DateTime?          @map("cancelled_at")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([stripeCustomerId])
+  @@map("subscriptions")
+}
+
+// ================================================================
+// USAGE LIMITS
+// ================================================================
+
+model UsageLimit {
+  id                     String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                 String   @unique @map("user_id") @db.Uuid
+  applicationsThisMonth  Int      @default(0) @map("applications_this_month")
+  applicationsLimit      Int      @default(10) @map("applications_limit")
+  aiOptimizationsUsed    Int      @default(0) @map("ai_optimizations_used")
+  aiOptimizationsLimit   Int      @default(3) @map("ai_optimizations_limit")
+  resumeUploads          Int      @default(0) @map("resume_uploads")
+  resumeUploadsLimit     Int      @default(2) @map("resume_uploads_limit")
+  platformConnections    Int      @default(0) @map("platform_connections")
+  platformConnectionsLimit Int    @default(2) @map("platform_connections_limit")
+  resetDate              DateTime @map("reset_date")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("usage_limits")
+}

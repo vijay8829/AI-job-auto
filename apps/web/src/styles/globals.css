@@ -1,0 +1,168 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem;
+    --sidebar-width: 256px;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground antialiased; }
+  html { scroll-behavior: smooth; }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-muted-foreground/30; }
+}
+
+@layer utilities {
+  /* ── Gradients ──────────────────────────────────── */
+  .gradient-brand {
+    @apply bg-gradient-to-r from-brand-600 to-brand-500;
+  }
+  .gradient-brand-rich {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
+  }
+  .gradient-purple {
+    @apply bg-gradient-to-r from-purple-600 to-violet-500;
+  }
+  .gradient-text {
+    @apply bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent;
+  }
+  .gradient-text-brand {
+    @apply bg-gradient-to-r from-brand-500 to-brand-400 bg-clip-text text-transparent;
+  }
+  .gradient-mesh {
+    background-image: radial-gradient(at 40% 20%, rgba(59,130,246,0.08) 0px, transparent 50%),
+                      radial-gradient(at 80% 0%, rgba(139,92,246,0.08) 0px, transparent 50%),
+                      radial-gradient(at 0% 50%, rgba(37,99,235,0.05) 0px, transparent 50%);
+  }
+
+  /* ── Cards & Glass ─────────────────────────────── */
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer;
+  }
+  .card-interactive {
+    @apply transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:border-brand-200 dark:hover:border-brand-800 cursor-pointer;
+  }
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl dark:bg-gray-900/80 border border-white/20 dark:border-white/10;
+  }
+  .glass-brand {
+    @apply bg-brand-50/80 backdrop-blur-xl dark:bg-brand-950/50 border border-brand-100/50 dark:border-brand-800/30;
+  }
+
+  /* ── Shimmer ────────────────────────────────────── */
+  .shimmer-bg {
+    background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--accent)) 50%, hsl(var(--muted)) 75%);
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+  .shimmer-bg-fast {
+    background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--accent)) 50%, hsl(var(--muted)) 75%);
+    background-size: 200% 100%;
+    @apply animate-shimmer-fast;
+  }
+
+  /* ── Glow effects ───────────────────────────────── */
+  .glow-brand { box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
+  .glow-green { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+  .glow-purple { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+
+  /* ── Status dots ────────────────────────────────── */
+  .status-dot {
+    @apply w-2 h-2 rounded-full inline-block;
+  }
+  .status-dot-live {
+    @apply w-2 h-2 rounded-full bg-green-500 relative inline-block;
+  }
+  .status-dot-live::after {
+    content: '';
+    @apply absolute inset-0 rounded-full bg-green-500 animate-ping-slow opacity-75;
+  }
+
+  /* ── Number animation ───────────────────────────── */
+  .animate-count {
+    @apply animate-count-up;
+  }
+
+  /* ── Gradient button ────────────────────────────── */
+  .btn-brand {
+    @apply gradient-brand text-white font-semibold rounded-xl px-4 py-2 hover:opacity-90 hover:shadow-glow-sm transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-brand-lg {
+    @apply gradient-brand text-white font-semibold rounded-xl px-6 py-3 hover:opacity-90 hover:shadow-glow-brand transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-outline {
+    @apply border border-border bg-background text-foreground font-medium rounded-xl px-4 py-2 hover:bg-muted transition-all duration-150 active:scale-[0.98];
+  }
+
+  /* ── Focus ring ─────────────────────────────────── */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2;
+  }
+
+  /* ── Gradient animated ─────────────────────────── */
+  .gradient-animated {
+    background: linear-gradient(270deg, #2563eb, #7c3aed, #0ea5e9, #2563eb);
+    background-size: 400% 400%;
+    @apply animate-gradient-shift;
+  }
+
+  /* ── Orb decorations ───────────────────────────── */
+  .orb {
+    @apply absolute rounded-full pointer-events-none blur-3xl opacity-20;
+  }
+  .orb-brand { @apply bg-brand-400; }
+  .orb-purple { @apply bg-purple-400; }
+}
+
+/* ── Recharts styling ─────────────────────────────── */
+.recharts-cartesian-grid line { stroke: hsl(var(--border)); }
+.recharts-text { fill: hsl(var(--muted-foreground)); font-size: 11px; }
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  @apply !bg-card !border-border !rounded-xl !shadow-lg;
+}

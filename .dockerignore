@@ -1,0 +1,17 @@
+# Never copy local node_modules into Docker — pnpm installs fresh inside
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/coverage
+**/*.log
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+.git
+.github
+.vscode
+.cursor
+*.md
+docker-compose.override.yml

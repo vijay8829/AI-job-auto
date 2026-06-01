@@ -1,0 +1,120 @@
+# Render.com deployment manifest
+# Deploy the NestJS API + Bull Worker as two separate Web Services
+# Database: AWS RDS (external) — set DATABASE_URL in Render env vars
+# Redis: AWS ElastiCache (external) — set REDIS_URL in Render env vars
+
+services:
+  # ── API Server ───────────────────────────────────────────────────────────────
+  - type: web
+    name: aijob-api
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    branch: main
+    plan: starter           # upgrade to standard for production load
+    region: oregon          # closest to your users
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "4000"
+      - key: DATABASE_URL
+        sync: false         # set in Render dashboard
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: APP_URL
+        sync: false         # your Netlify URL
+      - key: CORS_ORIGIN
+        sync: false         # comma-separated allowed origins
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        value: us-east-1
+      - key: AWS_S3_BUCKET
+        value: ai-job-platform-resumes
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: FROM_EMAIL
+        value: noreply@aijobplatform.com
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+
+    buildCommand: >
+      pnpm install --frozen-lockfile &&
+      pnpm turbo run build --filter=@ai-job/api &&
+      npx prisma migrate deploy
+
+    startCommand: node apps/api/dist/main
+
+  # ── Bull Worker ──────────────────────────────────────────────────────────────
+  - type: worker
+    name: aijob-worker
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    branch: main
+    plan: standard          # workers need more RAM for Playwright
+    region: oregon
+    autoDeploy: true
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: WORKER_PORT
+        value: "4001"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        fromService:
+          name: aijob-api
+          type: web
+          envVarKey: JWT_SECRET
+      - key: JWT_REFRESH_SECRET
+        fromService:
+          name: aijob-api
+          type: web
+          envVarKey: JWT_REFRESH_SECRET
+      - key: ENCRYPTION_KEY
+        fromService:
+          name: aijob-api
+          type: web
+          envVarKey: ENCRYPTION_KEY
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        value: us-east-1
+      - key: AWS_S3_BUCKET
+        value: ai-job-platform-resumes
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: BROWSER_POOL_SIZE
+        value: "2"          # limit concurrent Playwright sessions on Render
+
+    startCommand: node apps/api/dist/worker

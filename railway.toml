@@ -1,0 +1,46 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "apps/api/Dockerfile"
+buildCommand = "pnpm install && pnpm run build --filter=@ai-job/api"
+
+[deploy]
+startCommand = "node apps/api/dist/main"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[[services]]
+name = "api"
+dockerfile = "apps/api/Dockerfile"
+
+[services.build]
+buildCommand = "pnpm install && pnpm turbo build --filter=@ai-job/api"
+
+[services.deploy]
+startCommand = "node dist/main"
+healthcheckPath = "/api/health"
+
+[[services]]
+name = "worker"
+dockerfile = "apps/api/Dockerfile"
+
+[services.deploy]
+startCommand = "node dist/worker"
+healthcheckPath = "/api/health"
+
+[[services]]
+name = "ai-service"
+dockerfile = "apps/ai-service/Dockerfile"
+
+[services.deploy]
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port 8000"
+healthcheckPath = "/health"
+
+[[services]]
+name = "web"
+dockerfile = "apps/web/Dockerfile"
+
+[services.deploy]
+startCommand = "node apps/web/server.js"
+healthcheckPath = "/"

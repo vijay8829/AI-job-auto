@@ -1,0 +1,40 @@
+{
+  "name": "ai-job-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Job Application Automation Platform - Production SaaS",
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "db:generate": "pnpm --filter @ai-job/database generate",
+    "db:push": "pnpm --filter @ai-job/database db:push",
+    "db:migrate": "pnpm --filter @ai-job/database migrate:dev",
+    "db:studio": "pnpm --filter @ai-job/database studio",
+    "db:seed": "pnpm --filter @ai-job/database seed",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "docker:dev": "docker-compose -f docker-compose.yml up",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.5.0",
+    "prettier": "^3.3.0",
+    "eslint": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0"
+  }
+}
