@@ -31,27 +31,43 @@
     --neon-purple: #a855f7;
     --neon-cyan: #22d3ee;
     --neon-green: #34d399;
+
+    /* Surface variables — used in inline styles for themed backgrounds */
+    --s-sidebar: rgba(10, 9, 20, 0.97);
+    --s-header: rgba(10, 9, 20, 0.92);
+    --s-panel: rgba(12, 10, 24, 0.97);
+    --s-auth: #080714;
+    --s-card-panel: rgba(255, 255, 255, 0.02);
+    --s-divider: #080714;
   }
 
   /* Light mode override */
   .light {
-    --background: 0 0% 99%;
-    --foreground: 240 10% 8%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 8%;
-    --border: 240 10% 90%;
-    --input: 240 10% 92%;
+    --background: 270 30% 98%;
+    --foreground: 270 50% 12%;
+    --card: 270 20% 100%;
+    --card-foreground: 270 50% 12%;
+    --border: 270 30% 88%;
+    --input: 270 25% 94%;
     --primary: 270 76% 52%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 270 15% 95%;
-    --secondary-foreground: 240 10% 20%;
-    --muted: 270 10% 94%;
-    --muted-foreground: 240 5% 45%;
-    --accent: 189 80% 40%;
+    --secondary: 270 20% 93%;
+    --secondary-foreground: 270 30% 20%;
+    --muted: 270 15% 92%;
+    --muted-foreground: 270 20% 42%;
+    --accent: 189 80% 38%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --ring: 270 76% 52%;
+
+    /* Surface variables for light theme */
+    --s-sidebar: rgba(250, 248, 255, 0.98);
+    --s-header: rgba(252, 250, 255, 0.95);
+    --s-panel: rgba(255, 254, 255, 0.97);
+    --s-auth: #f8f6ff;
+    --s-card-panel: rgba(124, 58, 237, 0.03);
+    --s-divider: #f8f6ff;
   }
 }
 
@@ -60,24 +76,28 @@
 
   html {
     scroll-behavior: smooth;
-    color-scheme: dark;
   }
+  html.dark  { color-scheme: dark; }
+  html.light { color-scheme: light; }
 
   body {
     @apply bg-background text-foreground antialiased;
-    background-color: hsl(240, 10%, 3.9%);
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
-  /* AI-themed scrollbar */
+  /* AI-themed scrollbar — dark */
   ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: hsl(245, 15%, 6%); }
+  ::-webkit-scrollbar-track { background: hsl(var(--background)); }
   ::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #7c3aed, #06b6d4);
     border-radius: 99px;
   }
   ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #a855f7, #22d3ee);
+  }
+  /* Light mode scrollbar */
+  .light ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(124,58,237,0.4), rgba(34,211,238,0.4));
   }
 
   /* Selection */

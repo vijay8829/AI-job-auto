@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Bell, Search, X, CheckCheck, Zap, Activity } from 'lucide-react';
+import { Bell, Search, X, CheckCheck, Zap, Activity, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/lib/api';
@@ -52,12 +53,12 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.96 }}
       transition={{ duration: 0.15, ease: 'easeOut' }}
-      className="absolute right-0 top-full mt-2 w-96 rounded-2xl z-50 overflow-hidden border border-white/[0.08]"
-      style={{ background: 'rgba(12,10,24,0.97)', backdropFilter: 'blur(24px)', boxShadow: '0 24px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(168,85,247,0.1)' }}
+      className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl z-50 overflow-hidden border border-border"
+      style={{ background: 'var(--s-panel)', backdropFilter: 'blur(24px)', boxShadow: '0 24px 48px rgba(0,0,0,0.2), 0 0 0 1px rgba(168,85,247,0.1)' }}
     >
-      <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <h3 className="font-bold text-sm text-white/90">Notifications</h3>
+          <h3 className="font-bold text-sm text-foreground">Notifications</h3>
           {unreadCount > 0 && (
             <motion.span
               initial={{ scale: 0 }}
@@ -73,22 +74,22 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
           {unreadCount > 0 && (
             <button
               onClick={() => markAllMutation.mutate()}
-              className="text-xs text-neon-purple hover:text-neon-cyan flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-neon-purple/10 transition-all"
+              className="text-xs text-neon-purple hover:text-neon-cyan flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-muted/60 transition-all"
             >
               <CheckCheck className="w-3 h-3" /> Mark all read
             </button>
           )}
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/5 transition-colors">
-            <X className="w-4 h-4 text-white/40" />
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted/60 transition-colors">
+            <X className="w-4 h-4 text-muted-foreground" />
           </button>
         </div>
       </div>
 
-      <div className="max-h-96 overflow-y-auto divide-y divide-white/[0.04]">
+      <div className="max-h-96 overflow-y-auto divide-y divide-border/50">
         {notifications.length === 0 ? (
           <div className="p-8 text-center">
-            <Bell className="w-10 h-10 mx-auto mb-2 text-white/10" />
-            <p className="text-sm text-white/40">You're all caught up!</p>
+            <Bell className="w-10 h-10 mx-auto mb-2 text-muted-foreground/30" />
+            <p className="text-sm text-muted-foreground">You're all caught up!</p>
           </div>
         ) : (
           notifications.map((n: any, i: number) => (
@@ -98,20 +99,20 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.04 }}
               className={cn(
-                'flex gap-3 p-4 hover:bg-white/[0.03] transition-colors cursor-pointer',
-                !n.isRead && 'bg-neon-purple/[0.04]',
+                'flex gap-3 p-4 hover:bg-muted/30 transition-colors cursor-pointer',
+                !n.isRead && 'bg-primary/[0.04]',
               )}
             >
               <span className="text-lg shrink-0 mt-0.5">{typeIcon[n.type] || '🔔'}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white/80 line-clamp-1">{n.title}</p>
-                <p className="text-xs text-white/40 line-clamp-2 mt-0.5">{n.body}</p>
-                <p className="text-xs text-white/25 mt-1">
+                <p className="text-sm font-medium text-foreground line-clamp-1">{n.title}</p>
+                <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.body}</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">
                   {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                 </p>
               </div>
               {!n.isRead && (
-                <div className="w-1.5 h-1.5 rounded-full bg-neon-purple mt-2 shrink-0 shadow-[0_0_6px_rgba(168,85,247,0.8)]" />
+                <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
               )}
             </motion.div>
           ))
@@ -122,8 +123,8 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
 }
 
 export function Header() {
+  const { theme, setTheme } = useTheme();
   const [showNotifs, setShowNotifs] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
 
   const { data: notifData } = useQuery({
     queryKey: ['notifications-unread'],
@@ -135,29 +136,20 @@ export function Header() {
 
   return (
     <header
-      className="h-16 px-6 flex items-center justify-between shrink-0 sticky top-0 z-30 border-b border-white/[0.06]"
-      style={{ background: 'rgba(10,9,20,0.92)', backdropFilter: 'blur(20px)' }}
+      className="h-14 sm:h-16 px-3 sm:px-6 flex items-center justify-between shrink-0 sticky top-0 z-30 border-b border-border/50"
+      style={{ background: 'var(--s-header)', backdropFilter: 'blur(20px)' }}
     >
-      {/* Search */}
-      <motion.button
-        animate={searchFocused ? { scale: 1 } : { scale: 1 }}
-        className={cn(
-          'flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all duration-200 border',
-          searchFocused
-            ? 'bg-neon-purple/10 border-neon-purple/40 text-white/80 shadow-[0_0_20px_rgba(168,85,247,0.15)]'
-            : 'bg-white/[0.04] border-white/[0.06] text-white/40 hover:text-white/60 hover:bg-white/[0.06] hover:border-white/[0.1]',
-        )}
-        onFocus={() => setSearchFocused(true)}
-        onBlur={() => setSearchFocused(false)}
-      >
-        <Search className={cn('w-4 h-4 transition-colors', searchFocused ? 'text-neon-purple' : 'text-white/30')} />
-        <span>Search jobs, companies...</span>
-        <kbd className="ml-3 text-[10px] px-1.5 py-0.5 rounded-md border border-white/[0.08] text-white/20 bg-white/[0.03]">⌘K</kbd>
-      </motion.button>
+      {/* Search — hidden on very small screens */}
+      <button className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all duration-200 border border-border/50 bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/60 hover:border-border">
+        <Search className="w-4 h-4 shrink-0" />
+        <span className="hidden md:inline">Search jobs, companies...</span>
+        <kbd className="hidden md:inline ml-1 text-[10px] px-1.5 py-0.5 rounded-md border border-border/50 text-muted-foreground/60 bg-background/50">⌘K</kbd>
+      </button>
+      <div className="sm:hidden" />
 
-      <div className="flex items-center gap-2">
-        {/* AI Status indicator */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-neon-green/20 bg-neon-green/5">
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* AI status — hidden on small screens */}
+        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-neon-green/20 bg-neon-green/5">
           <motion.div
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 1.6, repeat: Infinity }}
@@ -167,16 +159,35 @@ export function Header() {
           <span className="text-[10px] font-bold text-neon-green uppercase tracking-wider">AI Active</span>
         </div>
 
+        {/* Theme toggle */}
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center border border-border/50 bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/60 hover:border-border transition-all duration-150"
+        >
+          <AnimatePresence mode="wait">
+            {theme === 'dark' ? (
+              <motion.div key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.18 }}>
+                <Sun className="w-4 h-4" />
+              </motion.div>
+            ) : (
+              <motion.div key="moon" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.18 }}>
+                <Moon className="w-4 h-4" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.button>
+
         {/* Notifications */}
         <div className="relative">
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowNotifs((v) => !v)}
             className={cn(
-              'w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 relative border',
+              'w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all duration-150 relative border',
               showNotifs
                 ? 'bg-neon-purple/15 border-neon-purple/30 text-neon-purple shadow-[0_0_12px_rgba(168,85,247,0.2)]'
-                : 'bg-white/[0.04] border-white/[0.06] text-white/40 hover:text-white/70 hover:bg-white/[0.07] hover:border-white/[0.1]',
+                : 'border-border/50 bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/60 hover:border-border',
             )}
           >
             <Bell className="w-4 h-4" />
@@ -187,7 +198,7 @@ export function Header() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   exit={{ scale: 0 }}
-                  className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full flex items-center justify-center text-white text-[9px] font-bold px-1 shadow-sm"
+                  className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full flex items-center justify-center text-white text-[9px] font-bold px-1"
                   style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)' }}
                 >
                   {unreadCount > 99 ? '99+' : unreadCount}
@@ -204,13 +215,13 @@ export function Header() {
         {/* Upgrade CTA */}
         <motion.a
           href="/pricing"
-          whileHover={{ scale: 1.03, boxShadow: '0 0 20px rgba(168,85,247,0.4)' }}
+          whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white text-xs font-bold transition-all"
           style={{ background: 'linear-gradient(135deg, #7c3aed, #06b6d4)' }}
         >
           <Zap className="w-3 h-3" />
-          Upgrade
+          <span className="hidden sm:inline">Upgrade</span>
         </motion.a>
       </div>
     </header>

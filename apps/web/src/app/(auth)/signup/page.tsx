@@ -32,30 +32,30 @@ const signupSchema = z.object({
 type SignupForm = z.infer<typeof signupSchema>;
 
 const FEATURES = [
-  { icon: Zap,       color: '#a855f7', title: 'AI-Powered Matching', desc: 'Finds jobs that fit your profile across 7+ platforms' },
-  { icon: BarChart3, color: '#22d3ee', title: 'Resume Optimization',  desc: 'Auto-tailors your resume for each application' },
-  { icon: Shield,    color: '#34d399', title: 'Anti-Detection Bots',  desc: 'Human-like browser automation with stealth mode' },
-  { icon: CheckCircle2, color: '#f472b6', title: '3 Free Applications', desc: 'Start immediately — no credit card required' },
+  { icon: Zap,          color: '#a855f7', title: 'AI-Powered Matching',  desc: 'Finds jobs that fit your profile across 7+ platforms' },
+  { icon: BarChart3,    color: '#22d3ee', title: 'Resume Optimization',  desc: 'Auto-tailors your resume for each application' },
+  { icon: Shield,       color: '#34d399', title: 'Anti-Detection Bots',  desc: 'Human-like browser automation with stealth mode' },
+  { icon: CheckCircle2, color: '#f472b6', title: '3 Free Applications',  desc: 'Start immediately — no credit card required' },
 ];
 
-function NeonInput({ icon: Icon, error, suffix, className = '', ...props }: any) {
+function NeonInput({ icon: Icon, error, rightSlot, ...props }: any) {
   const [focused, setFocused] = useState(false);
   return (
-    <div className={`relative ${className}`}>
-      <Icon className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${focused ? 'text-neon-purple' : 'text-white/25'}`} />
+    <div className="relative">
+      <Icon className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${focused ? 'text-neon-purple' : 'text-muted-foreground/60'}`} />
       <input
         {...props}
         onFocus={(e: any) => { setFocused(true); props.onFocus?.(e); }}
         onBlur={(e: any) => { setFocused(false); props.onBlur?.(e); }}
-        className={`w-full pl-10 ${suffix ? 'pr-12' : 'pr-4'} py-3 rounded-xl text-sm text-white placeholder:text-white/25 border transition-all duration-200 outline-none bg-white/[0.04] ${
+        className={`w-full pl-10 ${rightSlot ? 'pr-12' : 'pr-4'} py-3 rounded-xl text-sm text-foreground placeholder:text-muted-foreground/50 border transition-all duration-200 outline-none bg-background/60 ${
           focused
-            ? 'border-neon-purple/60 bg-neon-purple/[0.06] shadow-[0_0_16px_rgba(168,85,247,0.12)]'
+            ? 'border-neon-purple/60 bg-primary/[0.05] shadow-[0_0_16px_rgba(168,85,247,0.1)]'
             : error
-              ? 'border-red-500/50 bg-red-500/[0.04]'
-              : 'border-white/[0.08] hover:border-white/[0.15]'
+              ? 'border-destructive/50'
+              : 'border-border hover:border-border/80'
         }`}
       />
-      {suffix && <div className="absolute right-3.5 top-1/2 -translate-y-1/2">{suffix}</div>}
+      {rightSlot && <div className="absolute right-3.5 top-1/2 -translate-y-1/2">{rightSlot}</div>}
     </div>
   );
 }
@@ -102,49 +102,49 @@ export default function SignupPage() {
   const googleEnabled = process.env.NEXT_PUBLIC_GOOGLE_ENABLED === 'true';
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#080714' }}>
-      {/* Left panel — showcase */}
+    <div className="min-h-screen flex bg-background" style={{ background: 'var(--s-auth)' }}>
+
+      {/* ── Left panel — showcase (lg+) ── */}
       <div className="hidden lg:flex lg:w-[48%] relative overflow-hidden flex-col justify-center px-12 xl:px-14">
-        <ParticleCanvas className="opacity-50" />
+        <ParticleCanvas className="opacity-50 dark:opacity-50" />
 
         {/* Neural grid */}
-        <div className="absolute inset-0 opacity-[0.04]"
+        <div className="absolute inset-0 opacity-[0.06] dark:opacity-[0.04]"
           style={{ backgroundImage: 'linear-gradient(rgba(34,211,238,1) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,1) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(at 20% 40%, rgba(34,211,238,0.1) 0px, transparent 60%), radial-gradient(at 80% 70%, rgba(124,58,237,0.12) 0px, transparent 50%)' }} />
+        <div className="absolute inset-0"
+          style={{ background: 'radial-gradient(at 20% 40%, rgba(34,211,238,0.08) 0px, transparent 60%), radial-gradient(at 80% 70%, rgba(124,58,237,0.10) 0px, transparent 50%)' }} />
 
         {/* Ambient orbs */}
-        <div className="absolute top-16 right-8 w-64 h-64 rounded-full blur-3xl animate-float-slow opacity-20" style={{ background: 'radial-gradient(circle, rgba(34,211,238,0.5), transparent 70%)' }} />
-        <div className="absolute bottom-16 left-8 w-48 h-48 rounded-full blur-3xl animate-float opacity-20" style={{ background: 'radial-gradient(circle, rgba(52,211,153,0.4), transparent 70%)' }} />
+        <div className="absolute top-16 right-8 w-64 h-64 rounded-full blur-3xl animate-float-slow opacity-15"
+          style={{ background: 'radial-gradient(circle, rgba(34,211,238,0.6), transparent 70%)' }} />
+        <div className="absolute bottom-16 left-8 w-48 h-48 rounded-full blur-3xl animate-float opacity-15"
+          style={{ background: 'radial-gradient(circle, rgba(52,211,153,0.5), transparent 70%)' }} />
 
         <div className="relative z-10">
           {/* Logo */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 mb-12"
-          >
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center border border-white/10"
-              style={{ background: 'linear-gradient(135deg, rgba(34,211,238,0.5), rgba(124,58,237,0.4))', backdropFilter: 'blur(12px)' }}>
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 mb-12">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center border border-border/30"
+              style={{ background: 'linear-gradient(135deg, rgba(34,211,238,0.4), rgba(124,58,237,0.3))', backdropFilter: 'blur(12px)' }}>
               <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
-              <span className="text-xl font-bold text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(90deg, #22d3ee, #a855f7)' }}>
+              <span className="text-xl font-bold text-transparent bg-clip-text"
+                style={{ backgroundImage: 'linear-gradient(90deg, #22d3ee, #a855f7)' }}>
                 AI Job Platform
               </span>
-              <p className="text-white/30 text-xs mt-0.5">No credit card required</p>
+              <p className="text-muted-foreground text-xs mt-0.5">No credit card required</p>
             </div>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <h2 className="text-4xl xl:text-5xl font-black text-white mb-4 leading-tight">
+            <h2 className="text-4xl xl:text-5xl font-black text-foreground mb-4 leading-tight">
               Land your dream job{' '}
               <span className="text-transparent bg-clip-text"
                 style={{ backgroundImage: 'linear-gradient(90deg, #22d3ee, #34d399)' }}>
                 10× faster
               </span>
             </h2>
-            <p className="text-white/50 text-lg mb-10 leading-relaxed">
+            <p className="text-muted-foreground text-lg mb-10 leading-relaxed">
               Join thousands using AI to automate their search<br />
               and land more interviews.
             </p>
@@ -158,39 +158,31 @@ export default function SignupPage() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 + i * 0.09 }}
-                className="rounded-xl p-4 border border-white/[0.06]"
-                style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(8px)' }}
+                className="rounded-xl p-4 border border-border/50 bg-muted/20 backdrop-blur-sm"
               >
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2.5"
-                  style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
+                  style={{ background: `${color}15`, border: `1px solid ${color}30` }}>
                   <Icon className="w-4 h-4" style={{ color }} />
                 </div>
-                <p className="text-white/80 text-xs font-bold mb-1">{title}</p>
-                <p className="text-white/35 text-[10px] leading-relaxed">{desc}</p>
+                <p className="text-foreground/90 text-xs font-bold mb-1">{title}</p>
+                <p className="text-muted-foreground text-[10px] leading-relaxed">{desc}</p>
               </motion.div>
             ))}
           </div>
 
-          {/* Bottom indicator */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="mt-8 flex items-center gap-3"
-          >
-            <motion.div
-              animate={{ opacity: [0.4, 1, 0.4] }}
-              transition={{ duration: 1.8, repeat: Infinity }}
-              className="w-2 h-2 rounded-full bg-neon-cyan"
-            />
-            <span className="text-white/30 text-xs">Secure · Private · No spam</span>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
+            className="mt-8 flex items-center gap-3">
+            <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.8, repeat: Infinity }}
+              className="w-2 h-2 rounded-full bg-neon-cyan" />
+            <span className="text-muted-foreground/70 text-xs">Secure · Private · No spam</span>
           </motion.div>
         </div>
       </div>
 
-      {/* Right panel — form */}
+      {/* ── Right panel — form ── */}
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-y-auto py-8">
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(at 50% 50%, rgba(34,211,238,0.04) 0px, transparent 70%)' }} />
+        <div className="absolute inset-0"
+          style={{ background: 'radial-gradient(at 50% 50%, rgba(34,211,238,0.03) 0px, transparent 70%)' }} />
 
         <motion.div
           initial={{ opacity: 0, x: 24 }}
@@ -200,16 +192,18 @@ export default function SignupPage() {
         >
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-6 lg:hidden">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #22d3ee, #7c3aed)' }}>
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #22d3ee, #7c3aed)' }}>
               <Bot className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-lg text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(90deg, #22d3ee, #a855f7)' }}>
+            <span className="font-bold text-lg text-transparent bg-clip-text"
+              style={{ backgroundImage: 'linear-gradient(90deg, #22d3ee, #a855f7)' }}>
               AI Job Platform
             </span>
           </div>
 
-          <h1 className="text-2xl font-black text-white mb-1">Create your account</h1>
-          <p className="text-white/40 text-sm mb-7">
+          <h1 className="text-2xl font-black text-foreground mb-1">Create your account</h1>
+          <p className="text-muted-foreground text-sm mb-7">
             Already have an account?{' '}
             <Link href="/login" className="text-neon-cyan hover:text-neon-purple font-semibold transition-colors">Sign in →</Link>
           </p>
@@ -219,8 +213,8 @@ export default function SignupPage() {
             onClick={handleGoogleSignup}
             className={`w-full flex items-center justify-center gap-3 px-4 py-3 border rounded-xl transition-all mb-6 text-sm font-medium ${
               googleEnabled
-                ? 'border-white/[0.1] text-white/60 hover:text-white/80 hover:bg-white/[0.04] hover:border-white/20'
-                : 'border-white/[0.05] text-white/20 cursor-not-allowed'
+                ? 'border-border text-foreground/70 hover:text-foreground hover:bg-muted/40 hover:border-border/80'
+                : 'border-border/30 text-muted-foreground/40 cursor-not-allowed'
             }`}
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -230,15 +224,15 @@ export default function SignupPage() {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
             Continue with Google
-            {!googleEnabled && <span className="text-xs text-white/20">(not configured)</span>}
+            {!googleEnabled && <span className="text-xs text-muted-foreground">(not configured)</span>}
           </button>
 
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/[0.06]" />
+              <div className="w-full border-t border-border/50" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-3 text-white/25" style={{ background: '#080714' }}>or sign up with email</span>
+              <span className="px-3 text-muted-foreground bg-[var(--s-auth)]">or sign up with email</span>
             </div>
           </div>
 
@@ -246,46 +240,25 @@ export default function SignupPage() {
             {/* Name row */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-bold mb-2 block text-white/40 uppercase tracking-wider">First name</label>
-                <NeonInput
-                  {...register('firstName')}
-                  icon={User}
-                  type="text"
-                  placeholder="John"
-                  autoComplete="given-name"
-                  error={!!errors.firstName}
-                />
-                {errors.firstName && <p className="text-red-400 text-xs mt-1">{errors.firstName.message}</p>}
+                <label className="text-[10px] font-bold mb-2 block text-muted-foreground uppercase tracking-wider">First name</label>
+                <NeonInput {...register('firstName')} icon={User} type="text" placeholder="John" autoComplete="given-name" error={!!errors.firstName} />
+                {errors.firstName && <p className="text-destructive text-xs mt-1">{errors.firstName.message}</p>}
               </div>
               <div>
-                <label className="text-[10px] font-bold mb-2 block text-white/40 uppercase tracking-wider">Last name</label>
-                <NeonInput
-                  {...register('lastName')}
-                  icon={User}
-                  type="text"
-                  placeholder="Doe"
-                  autoComplete="family-name"
-                  error={!!errors.lastName}
-                />
-                {errors.lastName && <p className="text-red-400 text-xs mt-1">{errors.lastName.message}</p>}
+                <label className="text-[10px] font-bold mb-2 block text-muted-foreground uppercase tracking-wider">Last name</label>
+                <NeonInput {...register('lastName')} icon={User} type="text" placeholder="Doe" autoComplete="family-name" error={!!errors.lastName} />
+                {errors.lastName && <p className="text-destructive text-xs mt-1">{errors.lastName.message}</p>}
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] font-bold mb-2 block text-white/40 uppercase tracking-wider">Email address</label>
-              <NeonInput
-                {...register('email')}
-                icon={Mail}
-                type="email"
-                placeholder="you@example.com"
-                autoComplete="email"
-                error={!!errors.email}
-              />
-              {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
+              <label className="text-[10px] font-bold mb-2 block text-muted-foreground uppercase tracking-wider">Email address</label>
+              <NeonInput {...register('email')} icon={Mail} type="email" placeholder="you@example.com" autoComplete="email" error={!!errors.email} />
+              {errors.email && <p className="text-destructive text-xs mt-1">{errors.email.message}</p>}
             </div>
 
             <div>
-              <label className="text-[10px] font-bold mb-2 block text-white/40 uppercase tracking-wider">Password</label>
+              <label className="text-[10px] font-bold mb-2 block text-muted-foreground uppercase tracking-wider">Password</label>
               <NeonInput
                 {...register('password')}
                 icon={Lock}
@@ -293,17 +266,18 @@ export default function SignupPage() {
                 placeholder="Min 8 chars, 1 uppercase, 1 number"
                 autoComplete="new-password"
                 error={!!errors.password}
-                suffix={
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-white/25 hover:text-white/60 transition-colors">
+                rightSlot={
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    className="text-muted-foreground/50 hover:text-muted-foreground transition-colors">
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 }
               />
-              {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>}
+              {errors.password && <p className="text-destructive text-xs mt-1">{errors.password.message}</p>}
             </div>
 
             <div>
-              <label className="text-[10px] font-bold mb-2 block text-white/40 uppercase tracking-wider">Confirm password</label>
+              <label className="text-[10px] font-bold mb-2 block text-muted-foreground uppercase tracking-wider">Confirm password</label>
               <NeonInput
                 {...register('confirmPassword')}
                 icon={Lock}
@@ -311,35 +285,35 @@ export default function SignupPage() {
                 placeholder="Re-enter your password"
                 autoComplete="new-password"
                 error={!!errors.confirmPassword}
-                suffix={
-                  <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="text-white/25 hover:text-white/60 transition-colors">
+                rightSlot={
+                  <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+                    className="text-muted-foreground/50 hover:text-muted-foreground transition-colors">
                     {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 }
               />
-              {errors.confirmPassword && <p className="text-red-400 text-xs mt-1">{errors.confirmPassword.message}</p>}
+              {errors.confirmPassword && <p className="text-destructive text-xs mt-1">{errors.confirmPassword.message}</p>}
             </div>
 
             <motion.button
               type="submit"
               disabled={isLoading}
               whileTap={{ scale: 0.98 }}
-              whileHover={{ boxShadow: '0 0 28px rgba(34,211,238,0.4)' }}
+              whileHover={{ boxShadow: '0 0 28px rgba(34,211,238,0.35)' }}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-white font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-2"
               style={{ background: 'linear-gradient(135deg, #06b6d4 0%, #7c3aed 60%, #a855f7 100%)' }}
             >
-              {isLoading ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Creating account...</>
-              ) : (
-                <>Create free account <ArrowRight className="w-4 h-4" /></>
-              )}
+              {isLoading
+                ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Creating account...</>
+                : <>Create free account <ArrowRight className="w-4 h-4" /></>
+              }
             </motion.button>
           </form>
 
-          <p className="text-center text-xs text-white/20 mt-6">
+          <p className="text-center text-xs text-muted-foreground/60 mt-6">
             By creating an account you agree to our{' '}
-            <Link href="/terms" className="underline hover:text-white/50 transition-colors">Terms of Service</Link>{' '}and{' '}
-            <Link href="/privacy" className="underline hover:text-white/50 transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="underline hover:text-muted-foreground transition-colors">Terms of Service</Link>{' '}and{' '}
+            <Link href="/privacy" className="underline hover:text-muted-foreground transition-colors">Privacy Policy</Link>
           </p>
         </motion.div>
       </div>
