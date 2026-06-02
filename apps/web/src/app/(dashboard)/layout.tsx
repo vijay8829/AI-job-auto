@@ -113,7 +113,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </div>
         <Header />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-background">
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}

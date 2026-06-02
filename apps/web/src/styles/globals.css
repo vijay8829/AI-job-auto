@@ -269,6 +269,9 @@
   }
 
   /* ─── CARDS ─────────────────────────────────────────────────────────── */
+  .card {
+    @apply bg-card border border-border rounded-2xl;
+  }
   .card-hover {
     @apply transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer;
   }
