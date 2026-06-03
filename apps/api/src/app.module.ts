@@ -53,15 +53,32 @@ import { HealthController } from './health.controller';
 
     BullModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        redis: config.get('REDIS_URL', 'redis://localhost:6379'),
-        defaultJobOptions: {
-          attempts: 3,
-          backoff: { type: 'exponential', delay: 2000 },
-          removeOnComplete: { count: 200, age: 7 * 24 * 3600 }, // keep 200 or 7 days
-          removeOnFail: { count: 500, age: 30 * 24 * 3600 },    // keep 500 or 30 days
-        },
-      }),
+      useFactory: (config: ConfigService) => {
+        const redisUrl = config.get<string>('REDIS_URL', 'redis://localhost:6379');
+        const isTls = redisUrl.startsWith('rediss://');
+        const redisConfig = isTls
+          ? (() => {
+              const u = new URL(redisUrl);
+              return {
+                host: u.hostname,
+                port: parseInt(u.port || '6380', 10),
+                password: u.password ? decodeURIComponent(u.password) : undefined,
+                username: u.username ? decodeURIComponent(u.username) : undefined,
+                tls: { rejectUnauthorized: false },
+                lazyConnect: false,
+              };
+            })()
+          : redisUrl;
+        return {
+          redis: redisConfig,
+          defaultJobOptions: {
+            attempts: 3,
+            backoff: { type: 'exponential', delay: 2000 },
+            removeOnComplete: { count: 200, age: 7 * 24 * 3600 },
+            removeOnFail: { count: 500, age: 30 * 24 * 3600 },
+          },
+        };
+      },
     }),
 
     ScheduleModule.forRoot(),

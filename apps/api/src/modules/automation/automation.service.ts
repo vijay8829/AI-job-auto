@@ -156,12 +156,15 @@ export class AutomationService {
   }
 
   async getQueueStats() {
+    const withTimeout = <T>(p: Promise<T>, fallback: T, ms = 4000): Promise<T> =>
+      Promise.race([p, new Promise<T>((r) => setTimeout(() => r(fallback), ms))]);
+
     const [waiting, active, completed, failed, delayed] = await Promise.all([
-      this.applyQueue.getWaitingCount(),
-      this.applyQueue.getActiveCount(),
-      this.applyQueue.getCompletedCount(),
-      this.applyQueue.getFailedCount(),
-      this.applyQueue.getDelayedCount(),
+      withTimeout(this.applyQueue.getWaitingCount(), 0),
+      withTimeout(this.applyQueue.getActiveCount(), 0),
+      withTimeout(this.applyQueue.getCompletedCount(), 0),
+      withTimeout(this.applyQueue.getFailedCount(), 0),
+      withTimeout(this.applyQueue.getDelayedCount(), 0),
     ]);
     const browser = this.browserSemaphore.getStats();
     return { waiting, active, completed, failed, delayed, browser };
