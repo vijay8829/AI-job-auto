@@ -19,7 +19,7 @@
 # Rewrites: proxy /api/v1/* to the Render backend so the browser never calls it directly
 [[redirects]]
   from   = "/api/v1/*"
-  to     = "https://aijob-api.onrender.com/api/v1/:splat"
+  to     = "https://ai-job-auto-production.up.railway.app/api/v1/:splat"
   status = 200
   force  = true
 
