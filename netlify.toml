@@ -3,8 +3,8 @@
 
 [build]
   base    = "apps/web"
-  command = "cd ../.. && pnpm install --frozen-lockfile && pnpm turbo run build --filter=@ai-job/web"
-  publish = "apps/web/.next"
+  command = "cd ../.. && pnpm install --no-frozen-lockfile && pnpm turbo run build --filter=@ai-job/web"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION  = "20"
