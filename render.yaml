@@ -60,13 +60,6 @@ services:
       - key: GOOGLE_CLIENT_SECRET
         sync: false
 
-    buildCommand: >
-      pnpm install --frozen-lockfile &&
-      pnpm turbo run build --filter=@ai-job/api &&
-      npx prisma migrate deploy
-
-    startCommand: node apps/api/dist/main
-
   # ── Bull Worker ──────────────────────────────────────────────────────────────
   - type: worker
     name: aijob-worker
@@ -74,7 +67,7 @@ services:
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
     branch: main
-    plan: standard          # workers need more RAM for Playwright
+    plan: starter
     region: oregon
     autoDeploy: true
 
@@ -116,5 +109,3 @@ services:
         sync: false
       - key: BROWSER_POOL_SIZE
         value: "2"          # limit concurrent Playwright sessions on Render
-
-    startCommand: node apps/api/dist/worker
