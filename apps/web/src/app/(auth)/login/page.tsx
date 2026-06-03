@@ -21,7 +21,7 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 const DEMO_EMAIL = 'demo@aijobplatform.com';
-const DEMO_PASSWORD = 'Demo@1234!';
+const DEMO_PASSWORD = 'Demo@123456';
 
 const LIVE_STATS = [
   { value: '2,847', label: 'Applications today', color: '#a855f7' },
