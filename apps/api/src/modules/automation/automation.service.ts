@@ -156,16 +156,22 @@ export class AutomationService {
   }
 
   async getQueueStats() {
-    const withTimeout = <T>(p: Promise<T>, fallback: T, ms = 4000): Promise<T> =>
-      Promise.race([p, new Promise<T>((r) => setTimeout(() => r(fallback), ms))]).catch(() => fallback);
-
-    const [waiting, active, completed, failed, delayed] = await Promise.all([
-      withTimeout(this.applyQueue.getWaitingCount(), 0),
-      withTimeout(this.applyQueue.getActiveCount(), 0),
-      withTimeout(this.applyQueue.getCompletedCount(), 0),
-      withTimeout(this.applyQueue.getFailedCount(), 0),
-      withTimeout(this.applyQueue.getDelayedCount(), 0),
-    ]);
+    let waiting = 0, active = 0, completed = 0, failed = 0, delayed = 0;
+    try {
+      const t = <T>(p: Promise<T>): Promise<T | 0> =>
+        new Promise((resolve) => {
+          const timer = setTimeout(() => resolve(0), 4000);
+          p.then((v) => { clearTimeout(timer); resolve(v); })
+           .catch(() => { clearTimeout(timer); resolve(0); });
+        });
+      [waiting, active, completed, failed, delayed] = await Promise.all([
+        t(this.applyQueue.getWaitingCount()),
+        t(this.applyQueue.getActiveCount()),
+        t(this.applyQueue.getCompletedCount()),
+        t(this.applyQueue.getFailedCount()),
+        t(this.applyQueue.getDelayedCount()),
+      ]) as [number, number, number, number, number];
+    } catch { /* Redis unavailable */ }
     const browser = this.browserSemaphore.getStats();
     return { waiting, active, completed, failed, delayed, browser };
   }
