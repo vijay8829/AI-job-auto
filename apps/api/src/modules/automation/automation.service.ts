@@ -157,7 +157,7 @@ export class AutomationService {
 
   async getQueueStats() {
     const withTimeout = <T>(p: Promise<T>, fallback: T, ms = 4000): Promise<T> =>
-      Promise.race([p, new Promise<T>((r) => setTimeout(() => r(fallback), ms))]);
+      Promise.race([p, new Promise<T>((r) => setTimeout(() => r(fallback), ms))]).catch(() => fallback);
 
     const [waiting, active, completed, failed, delayed] = await Promise.all([
       withTimeout(this.applyQueue.getWaitingCount(), 0),
